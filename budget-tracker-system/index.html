@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .visualization-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .visualization-section.show {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Budget Tracker System</h1>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex justify-center space-x-4 mb-12">
+            <a href="home.html" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">
+                Go to Budget Planner
+            </a>
+            <a href="performance.html" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-md">
+                View Performance
+            </a>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid md:grid-cols-12 gap-8">
+            <!-- Left Column - Input Forms -->
+            <div class="md:col-span-4 space-y-6">
+                <!-- Budget Form -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h4 class="text-xl font-semibold text-gray-800 mb-4">Add Budget</h4>
+                    <form id="budget-form" class="space-y-4">
+                        <div>
+                            <label for="budget" class="block text-sm font-medium text-gray-700 mb-1">Budget Amount (₹):</label>
+                            <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   type="number" id="budget" placeholder="Enter amount in ₹">
+                        </div>
+                        <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            Add Budget
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Expense Form -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h4 class="text-xl font-semibold text-gray-800 mb-4">Add Expense</h4>
+                    <form id="expense-form" class="space-y-4">
+                        <div>
+                            <label for="expense" class="block text-sm font-medium text-gray-700 mb-1">Expense Title:</label>
+                            <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   type="text" id="expense" placeholder="Enter expense name">
+                        </div>
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category:</label>
+                            <select id="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="Food">Food</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹):</label>
+                            <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   type="number" id="amount" placeholder="Enter amount in ₹">
+                        </div>
+                        <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200">
+                            Add Expense
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Reset Button -->
+                <button onclick="resetAll()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-md">
+                    Reset All
+                </button>
+            </div>
+
+            <!-- Right Column - Display Area -->
+            <div class="md:col-span-8 space-y-6">
+                <!-- Budget Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 transform hover:scale-105 transition-transform duration-200">
+                        <h5 class="text-sm font-medium text-gray-600 mb-2">Total Budget</h5>
+                        <p class="text-3xl font-bold text-blue-600">₹<span id="totalBudget">0.00</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Your allocated budget</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 transform hover:scale-105 transition-transform duration-200">
+                        <h5 class="text-sm font-medium text-gray-600 mb-2">Total Expenses</h5>
+                        <p class="text-3xl font-bold text-red-600">₹<span id="totalExpenses">0.00</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Total amount spent</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 transform hover:scale-105 transition-transform duration-200">
+                        <h5 class="text-sm font-medium text-gray-600 mb-2">Budget Left</h5>
+                        <p class="text-3xl font-bold text-green-600">₹<span id="budgetLeft">0.00</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Remaining budget</p>
+                    </div>
+                </div>
+
+                <!-- Visualization Toggle -->
+                <div class="flex justify-end">
+                    <button onclick="toggleVisualization()" class="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Toggle Charts</span>
+                    </button>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="visualization-section">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h5 class="text-lg font-semibold text-gray-800 mb-4">Expense Distribution</h5>
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h5 class="text-lg font-semibold text-gray-800 mb-4">Category Comparison</h5>
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense History Table -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h5 class="text-lg font-semibold text-gray-800 mb-4">Expense History</h5>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expense Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data structure
+        let budgetData = {
+            totalBudget: 0,
+            expenses: [],
+            expensesByCategory: {},
+            monthlyData: {}
+        };
+
+        // Load data from localStorage on page load
+        window.onload = function() {
+            loadData();
+            initializeCharts();
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('budgetData');
+            if (savedData) {
+                budgetData = JSON.parse(savedData);
+            }
+            updateDisplay();
+            updateExpenseTable();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('budgetData', JSON.stringify(budgetData));
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return parseFloat(amount).toFixed(2);
+        }
+
+        // Update the display values
+        function updateDisplay() {
+            try {
+                const totalExpenses = budgetData.expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+                const budgetLeft = budgetData.totalBudget - totalExpenses;
+
+                // Update budget display
+                const totalBudgetElement = document.getElementById('totalBudget');
+                const totalExpensesElement = document.getElementById('totalExpenses');
+                const budgetLeftElement = document.getElementById('budgetLeft');
+
+                if (totalBudgetElement) totalBudgetElement.textContent = formatCurrency(budgetData.totalBudget);
+                if (totalExpensesElement) totalExpensesElement.textContent = formatCurrency(totalExpenses);
+                if (budgetLeftElement) {
+                    budgetLeftElement.textContent = formatCurrency(budgetLeft);
+                    
+                    // Add color coding for budget left
+                    const parentElement = budgetLeftElement.parentElement;
+                    if (parentElement) {
+                        if (budgetLeft < 0) {
+                            parentElement.classList.remove('text-green-600');
+                            parentElement.classList.add('text-red-600');
+                        } else {
+                            parentElement.classList.remove('text-red-600');
+                            parentElement.classList.add('text-green-600');
+                        }
+                    }
+                }
+
+                // Update charts if they exist
+                if (window.pieChart && window.barChart) {
+                    updateCharts();
+                }
+            } catch (error) {
+                console.error('Error updating display:', error);
+            }
+        }
+
+        // Update expense table
+        function updateExpenseTable() {
+            try {
+                const tableBody = document.getElementById('expenseTableBody');
+                if (!tableBody) return;
+
+                tableBody.innerHTML = '';
+                
+                budgetData.expenses.forEach((expense, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.category}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹${formatCurrency(expense.amount)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <button onclick="deleteExpense(${index})" class="text-red-600 hover:text-red-900">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error updating expense table:', error);
+            }
+        }
+
+        // Delete expense
+        function deleteExpense(index) {
+            const expense = budgetData.expenses[index];
+            if (expense && budgetData.expensesByCategory[expense.category]) {
+                budgetData.expensesByCategory[expense.category] -= expense.amount;
+                if (budgetData.expensesByCategory[expense.category] <= 0) {
+                    delete budgetData.expensesByCategory[expense.category];
+                }
+            }
+            budgetData.expenses.splice(index, 1);
+            
+            saveData();
+            updateDisplay();
+            updateExpenseTable();
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const barCtx = document.getElementById('barChart').getContext('2d');
+
+            window.pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            'rgb(59, 130, 246)', // blue
+                            'rgb(16, 185, 129)', // green
+                            'rgb(239, 68, 68)',  // red
+                            'rgb(245, 158, 11)', // yellow
+                            'rgb(139, 92, 246)', // purple
+                            'rgb(236, 72, 153)'  // pink
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            window.barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Expenses by Category',
+                        data: [],
+                        backgroundColor: 'rgb(59, 130, 246)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update charts
+        function updateCharts() {
+            const categories = Object.keys(budgetData.expensesByCategory);
+            const amounts = categories.map(cat => budgetData.expensesByCategory[cat]);
+
+            window.pieChart.data.labels = categories;
+            window.pieChart.data.datasets[0].data = amounts;
+            window.pieChart.update();
+
+            window.barChart.data.labels = categories;
+            window.barChart.data.datasets[0].data = amounts;
+            window.barChart.update();
+        }
+
+        // Event Listeners for forms
+        document.getElementById('budget-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            try {
+                const budgetInput = document.getElementById('budget');
+                const amount = parseFloat(budgetInput.value);
+                
+                if (isNaN(amount) || amount < 0) {
+                    alert('Please enter a valid budget amount');
+                    return;
+                }
+
+                budgetData.totalBudget = amount;
+                saveData();
+                updateDisplay();
+                budgetInput.value = '';
+                console.log('Budget updated:', budgetData);
+            } catch (error) {
+                console.error('Error adding budget:', error);
+            }
+        });
+
+        document.getElementById('expense-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            try {
+                const expenseInput = document.getElementById('expense');
+                const categoryInput = document.getElementById('category');
+                const amountInput = document.getElementById('amount');
+
+                const name = expenseInput.value.trim();
+                const category = categoryInput.value;
+                const amount = parseFloat(amountInput.value);
+
+                if (!name || !category || isNaN(amount) || amount < 0) {
+                    alert('Please fill all fields with valid values');
+                    return;
+                }
+
+                const expense = {
+                    name: name,
+                    category: category,
+                    amount: amount
+                };
+
+                budgetData.expenses.push(expense);
+                budgetData.expensesByCategory[category] = (budgetData.expensesByCategory[category] || 0) + amount;
+
+                saveData();
+                updateDisplay();
+                updateExpenseTable();
+                
+                expenseInput.value = '';
+                categoryInput.value = 'Food';
+                amountInput.value = '';
+                console.log('Expense added:', expense);
+            } catch (error) {
+                console.error('Error adding expense:', error);
+            }
+        });
+
+        // Reset all data
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                budgetData = {
+                    totalBudget: 0,
+                    expenses: [],
+                    expensesByCategory: {},
+                    monthlyData: {}
+                };
+                saveData();
+                updateDisplay();
+                updateExpenseTable();
+                window.pieChart.data.labels = [];
+                window.pieChart.data.datasets[0].data = [];
+                window.pieChart.update();
+                window.barChart.data.labels = [];
+                window.barChart.data.datasets[0].data = [];
+                window.barChart.update();
+            }
+        }
+
+        function toggleVisualization() {
+            const section = document.querySelector('.visualization-section');
+            const button = document.querySelector('.flex.justify-end > button');
+            const buttonText = button.querySelector('span');
+            
+            section.classList.toggle('show');
+            buttonText.textContent = section.classList.contains('show') ? 'Hide Charts' : 'Toggle Charts';
+        }
+    </script>
+</body>
+</html>

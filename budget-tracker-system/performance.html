@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Performance Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" onload="checkChartJsAndInitialize()">
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Budget Performance Analysis</h1>
+        
+        <!-- Navigation -->
+        <div class="flex justify-center space-x-4 mb-12">
+            <a href="index.html" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">
+                Back to Budget Tracker
+            </a>
+        </div>
+
+        <!-- Export Controls -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="flex flex-wrap gap-4 justify-between items-center">
+                <div class="space-y-2">
+                    <h3 class="text-lg font-semibold text-gray-800">Export Report</h3>
+                    <div class="flex gap-4">
+                        <select id="exportPeriod" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">All Time</option>
+                            <option value="month">This Month</option>
+                            <option value="week">This Week</option>
+                        </select>
+                        <select id="exportCategory" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">All Categories</option>
+                            <!-- Categories will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="exportToCSV()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export CSV
+                    </button>
+                    <button onclick="printReport()" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Print Report
+                    </button>
+                </div>
+            </div>
+            <div id="noDataMessage" class="hidden mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                No data to export yet. Add some expenses to generate a report.
+            </div>
+        </div>
+
+        <!-- Performance Overview -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Charts -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Spending Habits Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="monthlyTrends"></canvas>
+                </div>
+                <div id="spendingMessage" class="mt-4 text-gray-600 text-center"></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Category Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="categoryDistribution"></canvas>
+                </div>
+                <div id="categoryMessage" class="mt-4 text-gray-600 text-center"></div>
+            </div>
+        </div>
+
+        <!-- Smart Tips & Suggestions -->
+        <div class="mb-12" id="suggestionsContainer">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Smart Tips & Suggestions</h2>
+            <div id="noDataMessage" class="hidden bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">Add expenses to receive smart budgeting tips.</p>
+                    </div>
+                </div>
+            </div>
+            <div id="smartTips" class="grid md:grid-cols-2 gap-4">
+                <!-- Suggestions will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function checkChartJsAndInitialize() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                document.getElementById('spendingMessage').textContent = 'Error: Chart.js not loaded';
+                document.getElementById('categoryMessage').textContent = 'Error: Chart.js not loaded';
+                return;
+            }
+            console.log('Chart.js loaded successfully');
+            displayPerformanceData();
+        }
+
+        // Test data if no data exists
+        const testData = {
+            totalBudget: 50000,
+            expenses: [
+                { date: '2025-04-01', amount: 1500, category: 'Food' },
+                { date: '2025-04-02', amount: 2000, category: 'Transportation' },
+                { date: '2025-04-03', amount: 3000, category: 'Entertainment' },
+                { date: '2025-04-04', amount: 1800, category: 'Food' },
+                { date: '2025-04-05', amount: 2500, category: 'Shopping' },
+                { date: '2025-04-06', amount: 1000, category: 'Bills' },
+                { date: '2025-04-07', amount: 1200, category: 'Food' }
+            ]
+        };
+
+        // Wait for both DOM and Chart.js to be ready
+        window.addEventListener('load', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                document.getElementById('spendingMessage').textContent = 'Error: Chart.js not loaded';
+                document.getElementById('categoryMessage').textContent = 'Error: Chart.js not loaded';
+                return;
+            }
+            displayPerformanceData();
+        });
+
+        function displayPerformanceData() {
+            let budgetData = loadBudgetData();
+            
+            // If no data exists, use test data
+            if (!budgetData || !budgetData.expenses || budgetData.expenses.length === 0) {
+                console.log('No data found, using test data');
+                budgetData = testData;
+                localStorage.setItem('budgetData', JSON.stringify(testData));
+            }
+
+            console.log('Budget Data:', budgetData);
+            initializeCharts(budgetData);
+            generateSmartTips(budgetData);
+        }
+
+        function loadBudgetData() {
+            try {
+                const savedData = localStorage.getItem('budgetData');
+                return savedData ? JSON.parse(savedData) : null;
+            } catch (error) {
+                console.error('Error loading budget data:', error);
+                return null;
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        function generateSmartTips(budgetData) {
+            const tipsContainer = document.getElementById('smartTips');
+            if (!tipsContainer) return;
+            
+            tipsContainer.innerHTML = '';
+            
+            if (!budgetData.expenses || budgetData.expenses.length === 0) {
+                tipsContainer.innerHTML = `
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-gray-600">Add some expenses to see personalized financial insights!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tips = [];
+            const totalExpenses = budgetData.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+            
+            // Calculate category totals and percentages
+            const categoryTotals = {};
+            budgetData.expenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + parseFloat(exp.amount);
+            });
+
+            // Calculate daily spending patterns
+            const dailySpending = {};
+            budgetData.expenses.forEach(exp => {
+                const date = new Date(exp.date);
+                const day = date.toLocaleDateString();
+                dailySpending[day] = (dailySpending[day] || 0) + parseFloat(exp.amount);
+            });
+
+            const dailyValues = Object.values(dailySpending);
+            const avgDailySpending = dailyValues.reduce((a, b) => a + b, 0) / dailyValues.length;
+            const maxDailySpending = Math.max(...dailyValues);
+
+            // 1. Budget Status
+            if (budgetData.totalBudget) {
+                const budgetUsagePercent = (totalExpenses / budgetData.totalBudget) * 100;
+                if (budgetUsagePercent > 100) {
+                    tips.push({
+                        type: 'warning',
+                        title: 'Budget Alert',
+                        message: `You've exceeded your budget by ${formatCurrency(totalExpenses - budgetData.totalBudget)} (${(budgetUsagePercent - 100).toFixed(1)}% over)`
+                    });
+                } else if (budgetUsagePercent > 80) {
+                    tips.push({
+                        type: 'warning',
+                        title: 'Budget Warning',
+                        message: `You've used ${budgetUsagePercent.toFixed(1)}% of your budget. Consider reducing expenses.`
+                    });
+                }
+            }
+
+            // 2. Category-specific insights
+            Object.entries(categoryTotals).forEach(([category, amount]) => {
+                const percentage = (amount / totalExpenses) * 100;
+                
+                if (category === 'Food' && percentage > 30) {
+                    tips.push({
+                        type: 'insight',
+                        title: 'Food Expenses',
+                        message: `Your food expenses (${percentage.toFixed(1)}% of total) seem high. Consider meal planning or cooking at home more often.`
+                    });
+                }
+                
+                if (category === 'Entertainment' && percentage > 20) {
+                    tips.push({
+                        type: 'insight',
+                        title: 'Entertainment Spending',
+                        message: `Entertainment makes up ${percentage.toFixed(1)}% of your expenses. Look for free or low-cost activities.`
+                    });
+                }
+                
+                if (category === 'Shopping' && percentage > 25) {
+                    tips.push({
+                        type: 'insight',
+                        title: 'Shopping Habits',
+                        message: `Shopping expenses are ${percentage.toFixed(1)}% of total. Try making a shopping list and sticking to it.`
+                    });
+                }
+            });
+
+            // 3. Daily spending patterns
+            if (maxDailySpending > avgDailySpending * 2) {
+                tips.push({
+                    type: 'insight',
+                    title: 'Spending Spikes',
+                    message: `You have significant spending spikes. Try to spread out large purchases when possible.`
+                });
+            }
+
+            // 4. Recent trends
+            const sortedExpenses = [...budgetData.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const recentExpenses = sortedExpenses.slice(0, 3);
+            const recentTotal = recentExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+            
+            if (recentTotal > avgDailySpending * 2) {
+                tips.push({
+                    type: 'warning',
+                    title: 'Recent Spending',
+                    message: `Your recent spending is higher than usual. Your last ${recentExpenses.length} expenses total ${formatCurrency(recentTotal)}.`
+                });
+            }
+
+            // 5. Savings potential
+            if (budgetData.totalBudget) {
+                const savingsRate = ((budgetData.totalBudget - totalExpenses) / budgetData.totalBudget) * 100;
+                if (savingsRate > 0 && savingsRate < 20) {
+                    tips.push({
+                        type: 'insight',
+                        title: 'Savings Opportunity',
+                        message: `You're saving ${savingsRate.toFixed(1)}% of your budget. Aim for at least 20% savings if possible.`
+                    });
+                }
+            }
+
+            // Render tips
+            if (tips.length === 0) {
+                tips.push({
+                    type: 'success',
+                    title: 'Looking Good!',
+                    message: 'Your spending patterns look healthy. Keep up the good work!'
+                });
+            }
+
+            tips.forEach(tip => {
+                const tipElement = document.createElement('div');
+                tipElement.className = `p-4 rounded-lg ${
+                    tip.type === 'warning' ? 'bg-red-50 border-l-4 border-red-400' :
+                    tip.type === 'insight' ? 'bg-blue-50 border-l-4 border-blue-400' :
+                    'bg-green-50 border-l-4 border-green-400'
+                }`;
+                
+                tipElement.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="ml-3">
+                            <h3 class="text-lg font-semibold ${
+                                tip.type === 'warning' ? 'text-red-800' :
+                                tip.type === 'insight' ? 'text-blue-800' :
+                                'text-green-800'
+                            }">${tip.title}</h3>
+                            <p class="${
+                                tip.type === 'warning' ? 'text-red-700' :
+                                tip.type === 'insight' ? 'text-blue-700' :
+                                'text-green-700'
+                            }">${tip.message}</p>
+                        </div>
+                    </div>
+                `;
+                
+                tipsContainer.appendChild(tipElement);
+            });
+        }
+
+        function initializeCharts(budgetData) {
+            try {
+                // Basic data validation
+                if (!budgetData || !Array.isArray(budgetData.expenses)) {
+                    throw new Error('Invalid budget data format');
+                }
+
+                const spendingCanvas = document.getElementById('monthlyTrends');
+                const categoryCanvas = document.getElementById('categoryDistribution');
+
+                if (!spendingCanvas || !categoryCanvas) {
+                    throw new Error('Canvas elements not found');
+                }
+
+                // Clear any previous charts
+                const spendingChart = Chart.getChart(spendingCanvas);
+                const categoryChart = Chart.getChart(categoryCanvas);
+                
+                if (spendingChart) spendingChart.destroy();
+                if (categoryChart) categoryChart.destroy();
+
+                // Process data for spending habits
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const spendingByDay = days.reduce((acc, day) => ({ ...acc, [day]: [] }), {});
+
+                budgetData.expenses.forEach(exp => {
+                    if (exp.date && exp.amount) {
+                        const date = new Date(exp.date);
+                        const dayName = days[date.getDay()];
+                        spendingByDay[dayName].push(parseFloat(exp.amount));
+                    }
+                });
+
+                const averageSpending = days.map(day => {
+                    const expenses = spendingByDay[day];
+                    return expenses.length > 0 ? expenses.reduce((a, b) => a + b, 0) / expenses.length : 0;
+                });
+
+                // Create spending habits chart
+                new Chart(spendingCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Average Daily Spending',
+                            data: averageSpending,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: value => formatCurrency(value)
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Process data for category distribution
+                const categoryData = budgetData.expenses.reduce((acc, exp) => {
+                    if (exp.category && exp.amount) {
+                        acc[exp.category] = (acc[exp.category] || 0) + parseFloat(exp.amount);
+                    }
+                    return acc;
+                }, {});
+
+                const categoryColors = {
+                    Food: 'rgb(59, 130, 246)',
+                    Transportation: 'rgb(16, 185, 129)',
+                    Entertainment: 'rgb(245, 158, 11)',
+                    Shopping: 'rgb(239, 68, 68)',
+                    Bills: 'rgb(139, 92, 246)',
+                    Others: 'rgb(107, 114, 128)'
+                };
+
+                // Create category distribution chart
+                new Chart(categoryCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(categoryData),
+                        datasets: [{
+                            data: Object.values(categoryData),
+                            backgroundColor: Object.keys(categoryData).map(cat => categoryColors[cat] || 'rgb(107, 114, 128)')
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+
+                // Clear any error messages
+                document.getElementById('spendingMessage').textContent = '';
+                document.getElementById('categoryMessage').textContent = '';
+
+            } catch (error) {
+                console.error('Error in chart initialization:', error);
+                document.getElementById('spendingMessage').textContent = `Error: ${error.message}`;
+                document.getElementById('categoryMessage').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Filter expenses based on period and category
+        function filterExpenses() {
+            const budgetData = loadBudgetData();
+            const period = document.getElementById('exportPeriod').value;
+            const category = document.getElementById('exportCategory').value;
+            const now = new Date();
+            
+            let filtered = budgetData.expenses;
+
+            // Filter by period
+            if (period === 'month') {
+                filtered = filtered.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    return expDate.getMonth() === now.getMonth() && 
+                           expDate.getFullYear() === now.getFullYear();
+                });
+            } else if (period === 'week') {
+                const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+                filtered = filtered.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    return expDate >= weekStart;
+                });
+            }
+
+            // Filter by category
+            if (category !== 'all') {
+                filtered = filtered.filter(exp => exp.category === category);
+            }
+
+            return filtered;
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const expenses = filterExpenses();
+            
+            if (expenses.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('noDataMessage').classList.add('hidden');
+            
+            // Prepare CSV content
+            const headers = ['Date', 'Category', 'Description', 'Amount'];
+            const rows = expenses.map(exp => [
+                new Date(exp.date).toLocaleDateString('en-IN'),
+                exp.category,
+                exp.name,
+                formatCurrency(exp.amount)
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+            
+            // Create and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const date = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }).toLowerCase();
+            
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `expense_report_${date}.csv`;
+            link.click();
+        }
+
+        // Print report
+        function printReport() {
+            const expenses = filterExpenses();
+            
+            if (expenses.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('noDataMessage').classList.add('hidden');
+            
+            // Create print window content
+            const printWindow = window.open('', '', 'height=600,width=800');
+            const period = document.getElementById('exportPeriod').value;
+            const category = document.getElementById('exportCategory').value;
+            
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Expense Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+                            th { background-color: #f8f9fa; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Expense Report</h1>
+                        <p>Period: ${period === 'all' ? 'All Time' : period === 'month' ? 'This Month' : 'This Week'}</p>
+                        <p>Category: ${category === 'all' ? 'All Categories' : category}</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${expenses.map(exp => `
+                                    <tr>
+                                        <td>${new Date(exp.date).toLocaleDateString('en-IN')}</td>
+                                        <td>${exp.category}</td>
+                                        <td>${exp.name}</td>
+                                        <td>${formatCurrency(exp.amount)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+    </script>
+</body>
+</html>

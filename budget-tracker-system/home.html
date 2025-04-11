@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetWise - Smart Financial Planning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            // Update UI based on login status
+            document.getElementById('loggedInContent').style.display = user ? 'block' : 'none';
+            document.getElementById('publicContent').style.display = user ? 'none' : 'block';
+            
+            if (user) {
+                document.getElementById('userName').textContent = user.full_name;
+                document.getElementById('navLoginBtn').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+            } else {
+                document.getElementById('navLoginBtn').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.reload();
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="ml-2 text-2xl font-bold text-gray-800">BudgetWise</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="userInfo" class="flex items-center space-x-4" style="display: none;">
+                        <span class="text-gray-600">Welcome, <span id="userName" class="font-semibold"></span></span>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                            Logout
+                        </button>
+                    </div>
+                    <a id="navLoginBtn" href="login.html" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Login</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Public Content -->
+    <div id="publicContent">
+        <!-- Hero Section -->
+        <header class="bg-[#3153d4] text-white py-20">
+            <div class="container mx-auto px-6">
+                <div class="max-w-2xl">
+                    <h1 class="text-4xl font-bold mb-6 leading-tight">Take Control of Your Finances with AI-Powered Budgeting</h1>
+                    <p class="text-xl mb-8 text-white/90 leading-relaxed">Smart budgeting, expense tracking, and AI-driven insights to help you achieve your financial goals.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" onclick="document.getElementById('navLoginBtn').click(); return false;" class="bg-white text-[#3153d4] px-8 py-3 rounded-full font-bold text-base hover:bg-blue-50 transition-all">Track Your Budget</a>
+                        <a href="blog.html" class="bg-[#14a44d] text-white px-8 py-3 rounded-full font-bold text-base hover:bg-[#128f43] transition-all">Finance Blogs & Videos</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Logged In Content -->
+    <div id="loggedInContent" style="display: none;">
+        <!-- Welcome Section -->
+        <section class="bg-[#3153d4] text-white py-20">
+            <div class="container mx-auto px-6">
+                <div class="max-w-2xl">
+                    <h2 class="text-4xl font-bold mb-6 leading-tight">Take Control of Your Finances with AI-Powered Budgeting</h2>
+                    <p class="text-xl mb-8 text-white/90 leading-relaxed">Smart budgeting, expense tracking, and AI-driven insights to help you achieve your financial goals.</p>
+                    <div class="flex space-x-4">
+                        <a href="index.html" class="bg-white text-[#3153d4] px-8 py-3 rounded-full font-bold text-base hover:bg-blue-50 transition-all">Track Your Budget</a>
+                        <a href="blog.html" class="bg-[#14a44d] text-white px-8 py-3 rounded-full font-bold text-base hover:bg-[#128f43] transition-all">Finance Blogs & Videos</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Features Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-16">Smart Features for Smart Finance</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Budget Creation</h3>
+                    <p class="text-gray-600">Create and manage your monthly budget with ease using our intuitive interface.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Expense Tracking</h3>
+                    <p class="text-gray-600">Track your daily expenses and categorize them for better financial management.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Visual Insights</h3>
+                    <p class="text-gray-600">Understand your spending patterns with interactive charts and graphs.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">AI Suggestions</h3>
+                    <p class="text-gray-600">Get personalized recommendations to improve your financial health.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="bg-gray-100 py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-16">Why Choose BudgetWise?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-600 mb-4">100%</div>
+                    <h3 class="font-semibold mb-2">Free to Use</h3>
+                    <p class="text-gray-600">No hidden fees or subscription costs</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-600 mb-4">256-bit</div>
+                    <h3 class="font-semibold mb-2">Secure</h3>
+                    <p class="text-gray-600">Bank-level security for your data</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-600 mb-4">24/7</div>
+                    <h3 class="font-semibold mb-2">Available</h3>
+                    <p class="text-gray-600">Access your budget anytime, anywhere</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 BudgetWise. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
